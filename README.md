@@ -11,13 +11,13 @@ A browser-based single-player tactical naval combat game built with Phaser 3. Co
 ## Screenshots
 
 ### Main Menu
-![Main Menu](public/download%20(3).png)
+![Main Menu](public/frontpage.png)
 
 ### Gameplay
-![Gameplay](public/download%20(1).png)
+![Gameplay](public/gameplay.png)
 
 ### Settings
-![Settings](public/download%20(2).png)
+![Settings](public/settings.png)
 
 ## Features
 
