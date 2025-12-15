@@ -1,0 +1,31 @@
+.core/
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Vite
+vite.config.ts.timestamp-*
+
+# Temp files
+*.tmp
+*.temp
+.cache/
