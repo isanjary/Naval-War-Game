@@ -934,6 +934,8 @@ export class SinglePlayerServer extends Phaser.Events.EventEmitter {
         // Save progress to leaderboard before death logic (for local player)
         if (player.id === this.localPlayerId) {
             this.saveGameResult(player);
+            // Clear active game save so new games start fresh
+            localStorage.removeItem('navalwar_save');
         }
 
         player.ship.health = 0;
