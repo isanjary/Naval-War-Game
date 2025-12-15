@@ -1,15 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Naval War</title>
+  <meta name="description"
+    content="Play Naval War, a browser-based single-player tactical naval combat game. Command your ship, destroy enemies, and climb the leaderboard.">
+  <meta name="keywords"
+    content="naval war, ship game, browser game, phaser 3, tactical shooter, roguelite, combat game">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Naval War - Tactical Naval Combat">
+  <meta property="og:description"
+    content="Command your warship, dominate the seas, and upgrade your fleet in this single-player tactical game.">
+  <meta property="og:image" content="https://naval-war-game.vercel.app/frontpage.png">
+  <meta property="og:url" content="https://naval-war-game.vercel.app">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Naval War">
+  <meta name="twitter:description" content="Tactical naval combat in your browser. Play now for free!">
+  <meta name="twitter:image" content="https://naval-war-game.vercel.app/frontpage.png">
+
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
+
     body {
       background-color: #0a1628;
       display: flex;
@@ -18,17 +39,19 @@
       min-height: 100vh;
       overflow: hidden;
     }
+
     #game-container {
       width: 100%;
       max-width: 1920px;
     }
   </style>
 </head>
+
 <body>
   <div id="game-container"></div>
   <script>
     // Prevent browser key repeat from flooding events
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
       if (e.repeat) {
         e.preventDefault();
         e.stopPropagation();
@@ -38,4 +61,5 @@
   </script>
   <script type="module" src="/src/main.ts"></script>
 </body>
+
 </html>
