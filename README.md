@@ -1,6 +1,6 @@
 # Naval War
 
-**Play Now:** [https://naval-war-game.vercel.app](https://naval-war-game.vercel.app) | **Manual:** [Read the Guide](public/manual.html)
+**Play Now:** [https://naval-war-game.vercel.app](https://naval-war-game.vercel.app) | **Manual:** [Read the Guide](https://naval-war-game.vercel.app/manual.html)
 
 A browser-based single-player tactical naval combat game. Command your ship, destroy enemies, upgrade your fleet, and climb the leaderboard.
 
