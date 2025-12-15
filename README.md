@@ -30,7 +30,7 @@ Survive as long as you can. Your best scores are saved to the Hall of Fame.
 
 ## Features
 - **Roguelite Progression:** Level up to unlock ships and upgrades in a single run.
-- **5 Ship Classes:** Patrol Boat to Aircraft Carrier, each with unique abilities (Shield, Boost, Drone, Stealth).
+- **6 Ship Classes:** Patrol Boat to Aircraft Carrier, each with unique abilities (Shield, Boost, Drone, Stealth).
 - **Hostile AI:** Battle against Auto-Targeting Tanks and Defensive Lighthouses.
 - **Local Persistence:** High scores and last game stats are saved locally.
 
