@@ -236,7 +236,6 @@ export const XP_PER_LEVEL = [
 ];
 
 export const MAX_LEVEL = 10;
-export const UPGRADE_LEVEL_THRESHOLD = 5; // Can upgrade ship class at level 5+
 
 // ============================================
 // SHIP ABILITIES

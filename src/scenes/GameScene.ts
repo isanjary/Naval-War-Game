@@ -25,12 +25,6 @@ export class GameScene extends Phaser.Scene {
   private visualEffects!: VisualEffects;
   private mobileControls!: MobileControls;
 
-  // Debug / diagnostics
-  private lastGameStateAtMs = 0;
-  private gameStateCountSinceSample = 0;
-  private lastDebugSampleAtMs = 0;
-  private lastComputedGameStateHz = 0;
-
   // Entity maps for multiplayer
   private ships: Map<string, ShipEntity> = new Map();
   private bullets: Map<string, BulletEntity> = new Map();
@@ -48,7 +42,6 @@ export class GameScene extends Phaser.Scene {
   // Ship physics constants
   private readonly BASE_SHIP_SPEED = 250;
   private readonly TURN_RATE = 0.0175; // Radians per frame
-  private readonly LOCAL_SHIP_RADIUS = 25;
   private speedBonus = 0; // Updated from server
 
   // Firing
@@ -109,8 +102,6 @@ export class GameScene extends Phaser.Scene {
 
     // Handle game state updates directly when they arrive
     this.networkManager.onGameState = (state: GameState) => {
-      this.lastGameStateAtMs = performance.now();
-      this.gameStateCountSinceSample++;
       this.handleGameState(state);
     };
 
@@ -139,13 +130,8 @@ export class GameScene extends Phaser.Scene {
     this.playerBody.setCollideWorldBounds(true);
     this.playerBody.setCircle(25, -25, -25); // Radius 25, offset to center on ship
 
-    // Resolve local island collisions AFTER Arcade physics integrates velocity.
-    // Doing it during Scene.update causes the ship to be constantly reset and feel "stuck".
-    this.physics.world.on('worldstep', () => {
-      if (!this.isDead) {
-        this.resolveLocalPlayerIslandCollisions(this.playerBody);
-      }
-    });
+    // Resolve local island collisions is handled by server now for consistency
+    // (removed client-side prediction for collisions to avoid stutter)
 
     // Setup input
     this.cursors = this.input.keyboard!.createCursorKeys();
@@ -162,9 +148,6 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, this.WORLD_WIDTH, this.WORLD_HEIGHT);
     this.cameras.main.startFollow(this.playerShip, true, 0.1, 0.1);
     this.cameras.main.setZoom(1);
-
-    // Start diagnostics sampling (rendered by UIScene to avoid HUD overlap)
-    this.lastDebugSampleAtMs = performance.now();
 
     // Start UI scene in parallel
     this.scene.launch('UIScene');
@@ -646,7 +629,12 @@ export class GameScene extends Phaser.Scene {
     body.setMaxVelocity(currentSpeed);
 
     // Firing (Left mouse button, Space, or mobile fire button)
-    const actualFiring = isMobile ? mobileInput.fire : (this.input.activePointer.isDown || this.spaceKey.isDown);
+    const mouseFire = this.input.mousePointer?.primaryDown ?? false;
+    const keyFire = this.spaceKey.isDown;
+    const mobileFire = isMobile ? mobileInput.fire : false;
+
+    // Combine inputs (allow keyboard/mouse even if touch is detected for hybrid devices)
+    const actualFiring = mouseFire || keyFire || mobileFire;
 
     // Ability (E key or mobile ability button)
     const useAbility = Phaser.Input.Keyboard.JustDown(this.abilityKey) || mobileInput.useAbility;
@@ -665,27 +653,6 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-    // Update diagnostics overlay ~2x/sec
-    const nowMs = performance.now();
-    const sampleWindowMs = nowMs - this.lastDebugSampleAtMs;
-    if (sampleWindowMs >= 500) {
-      const gsHz = (this.gameStateCountSinceSample * 1000) / sampleWindowMs;
-      this.lastComputedGameStateHz = gsHz;
-      this.gameStateCountSinceSample = 0;
-      this.lastDebugSampleAtMs = nowMs;
-
-      const ageMs = this.lastGameStateAtMs > 0 ? (nowMs - this.lastGameStateAtMs) : -1;
-      const fps = this.game.loop.actualFps;
-
-      this.events.emit('netStats', {
-        fps,
-        gameStateHz: this.lastComputedGameStateHz,
-        lastPacketAgeMs: ageMs < 0 ? null : ageMs,
-        renderer: this.game.renderer.type === Phaser.WEBGL ? 'WEBGL' : 'CANVAS',
-        connected: this.networkManager.isConnected()
-      });
-    }
-
     // Update interpolation for remote entities
     for (const ship of this.ships.values()) {
       ship.updateInterpolation();
@@ -694,56 +661,6 @@ export class GameScene extends Phaser.Scene {
     for (const bullet of this.bullets.values()) {
       bullet.updateInterpolation();
     }
-  }
-
-  public getSoundManager(): SoundManager {
-    return this.soundManager;
-  }
-
-  private resolveLocalPlayerIslandCollisions(body: Phaser.Physics.Arcade.Body): void {
-    if (this.islands.size === 0) return;
-
-    let correctedX = this.playerShip.x;
-    let correctedY = this.playerShip.y;
-    let corrected = false;
-
-    for (const island of this.islands.values()) {
-      const dx = correctedX - island.x;
-      const dy = correctedY - island.y;
-      const minDist = island.radius + this.LOCAL_SHIP_RADIUS;
-      const distSq = dx * dx + dy * dy;
-
-      if (distSq < minDist * minDist) {
-        const dist = Math.sqrt(distSq);
-        const overlap = minDist - dist;
-
-        if (dist > 1e-6) {
-          correctedX += (dx / dist) * overlap;
-          correctedY += (dy / dist) * overlap;
-        } else {
-          correctedY -= minDist;
-        }
-
-        corrected = true;
-      }
-    }
-
-    if (corrected) {
-      const deltaX = correctedX - this.playerShip.x;
-      const deltaY = correctedY - this.playerShip.y;
-
-      // Move both the display object and the physics body without clearing velocity.
-      this.playerShip.x += deltaX;
-      this.playerShip.y += deltaY;
-      body.x += deltaX;
-      body.y += deltaY;
-    }
-  }
-
-  shutdown(): void {
-    this.soundManager.destroy();
-    this.visualEffects.destroy();
-    this.mobileControls.destroy();
   }
 
   private handleExitGame(): void {

@@ -67,6 +67,9 @@ interface Player {
     abilityCooldownUntil: number;
 }
 
+
+
+// Leaderboard Persistence
 interface ScoreEntry {
     name: string;
     score: number;
@@ -334,40 +337,9 @@ export class SinglePlayerServer extends Phaser.Events.EventEmitter {
         localStorage.setItem('navalwar_save', JSON.stringify(state));
     }
 
-    private saveGameResult(player: Player) {
-        if (player.id !== this.localPlayerId) return;
+    // private saveGameResult(player: Player) { ... } unused - handled by savePlayerState
 
-        const entry: ScoreEntry = {
-            name: player.name,
-            score: player.ship.score,
-            date: new Date().toISOString()
-        };
 
-        const data: LeaderboardData = this.loadLeaderboardData();
-
-        // Update last game
-        data.lastGame = entry;
-
-        // Update high scores
-        data.highScores.push(entry);
-        data.highScores.sort((a, b) => b.score - a.score);
-        data.highScores = data.highScores.slice(0, 3); // Keep top 3
-
-        localStorage.setItem('navalwar_leaderboard', JSON.stringify(data));
-        if (import.meta.env.DEV) console.log('Saved game result:', entry);
-    }
-
-    private loadLeaderboardData(): LeaderboardData {
-        try {
-            const saved = localStorage.getItem('navalwar_leaderboard');
-            if (saved) {
-                return JSON.parse(saved);
-            }
-        } catch (e) {
-            console.error('Failed to load leaderboard', e);
-        }
-        return { lastGame: null, highScores: [] };
-    }
 
     private loadPlayerState(player: Player) {
         try {
@@ -788,7 +760,7 @@ export class SinglePlayerServer extends Phaser.Events.EventEmitter {
                     });
 
                     if (player.ship.health <= 0) {
-                        this.handleShipDestroyed(player, bullet.ownerId);
+                        this.handlePlayerDeath(player, bullet.ownerId, bullet.type);
                     }
                     break;
                 }
@@ -820,6 +792,9 @@ export class SinglePlayerServer extends Phaser.Events.EventEmitter {
                 }
 
                 if (bullet.ownerId === neutral.id) continue;
+                // Prevent neutrals (Tanks/Lighthouses) from damaging other neutrals (Cargo/Buoys)
+                // Only players should be able to destroy neutrals
+                if (!this.players.has(bullet.ownerId)) continue;
 
                 const hitDistance = neutralRadius + BULLET_RADIUS;
                 const hitDistanceSq = hitDistance * hitDistance;
@@ -878,6 +853,9 @@ export class SinglePlayerServer extends Phaser.Events.EventEmitter {
 
                     p1.ship.health -= 1;
                     p2.ship.health -= 1;
+
+                    if (p1.ship.health <= 0 && !p1.isDead) this.handlePlayerDeath(p1, p2.id, 'collision');
+                    if (p2.ship.health <= 0 && !p2.isDead) this.handlePlayerDeath(p2, p1.id, 'collision');
                 }
             }
         }
@@ -917,7 +895,7 @@ export class SinglePlayerServer extends Phaser.Events.EventEmitter {
                         player.ship.health -= DRONE_DAMAGE;
                         this.emit('damageDealt', { x: player.ship.x, y: player.ship.y, damage: DRONE_DAMAGE, isCritical: false });
                         if (player.ship.health <= 0) {
-                            this.handleShipDestroyed(player, drone.ownerId);
+                            this.handlePlayerDeath(player, drone.ownerId, 'drone');
                         }
                     }
                     const distance = Math.sqrt(distanceSq);
@@ -950,27 +928,70 @@ export class SinglePlayerServer extends Phaser.Events.EventEmitter {
         }
     }
 
-    private handleShipDestroyed(player: Player, killerId: string): void {
-        const killer = this.players.get(killerId);
-        const killerName = killer?.name || 'Unknown';
+    private handlePlayerDeath(player: Player, killerId: string, weaponType: string) {
+        if (player.isDead) return;
 
-        player.isDead = true;
-        player.ship.health = 0;
-        player.deathTime = Date.now();
-
-        if (killer) {
-            killer.ship.kills++;
-            killer.ship.score += 100 + (player.ship.level * 10);
-            this.awardXP(killer, 100 + (player.ship.level * 20));
-        }
-
+        // Save progress to leaderboard before death logic (for local player)
         if (player.id === this.localPlayerId) {
             this.saveGameResult(player);
         }
 
+        player.ship.health = 0;
+        player.isDead = true;
+        player.deathTime = Date.now();
+
+        let killerName = 'Unknown';
+        let killerWeapon = weaponType;
+
+        const killer = this.players.get(killerId);
+        if (killer) {
+            killerName = killer.name;
+            killerWeapon = killer.ship.shipClass;
+            killer.ship.kills++;
+            killer.ship.score += 100 + (player.ship.level * 10);
+            this.awardXP(killer, 100 + (player.ship.level * 20));
+        } else {
+            // Check if killer is a neutral object (e.g., tank, lighthouse)
+            const killerNeutral = this.neutrals.find(n => n.id === killerId);
+            if (killerNeutral) {
+                killerName = killerNeutral.type === 'tank' ? 'Island Tank' :
+                    killerNeutral.type === 'lighthouse' ? 'Defense Tower' : 'Enemy';
+                killerWeapon = killerNeutral.type;
+            }
+        }
+
         this.emit('playerDied', { killerId, victimId: player.id, killerName });
         this.emit('deathTimer', { deathTime: player.deathTime });
-        this.emit('killFeed', { killerName, victimName: player.name, weapon: killer?.ship.shipClass || 'patrol_boat' });
+        this.emit('killFeed', { killerName, victimName: player.name, weapon: killerWeapon });
+    }
+
+    private saveGameResult(player: Player) {
+        try {
+            const entry: ScoreEntry = {
+                name: player.name,
+                score: player.ship.score,
+                date: new Date().toISOString()
+            };
+
+            // Load existing
+            let data: LeaderboardData = { lastGame: null, highScores: [] };
+            const saved = localStorage.getItem('navalwar_leaderboard');
+            if (saved) {
+                data = JSON.parse(saved);
+            }
+
+            // Update last game
+            data.lastGame = entry;
+
+            // Update high scores
+            data.highScores.push(entry);
+            data.highScores.sort((a, b) => b.score - a.score);
+            data.highScores = data.highScores.slice(0, 10);
+
+            localStorage.setItem('navalwar_leaderboard', JSON.stringify(data));
+        } catch (e) {
+            console.error('Failed to save leaderboard', e);
+        }
     }
 
     private getNeutralRadius(type: NeutralType): number {
@@ -1189,23 +1210,34 @@ export class SinglePlayerServer extends Phaser.Events.EventEmitter {
     private handleRespawn(playerId: string) {
         const player = this.players.get(playerId);
         if (!player) return;
-        // Simply reset health and position, keep persistence?
-        // For "Single Player" mode usually simple respawn is fine.
-        // But to punish death: lose score?
-        // For now, simple respawn.
+
+        // Reset player progress on death (Roguelite style)
         player.isDead = false;
+        player.ship.score = 0;
+        player.ship.level = 1;
+        player.ship.xp = 0;
+        player.ship.shipClass = 'patrol_boat';
+        player.ship.stats = { ...DEFAULT_STATS };
+        player.upgradePoints = 0;
+        player.ship.kills = 0;
+
+        // Reset Health & Position
+        const baseStats = SHIP_STATS['patrol_boat'];
+        player.ship.maxHealth = baseStats.maxHealth;
         player.ship.health = player.ship.maxHealth;
         player.ship.x = Math.random() * 2000 + 500;
         player.ship.y = Math.random() * 2000 + 500;
-        player.isDead = false;
-        player.ship.health = player.ship.maxHealth;
-        player.ship.x = Math.random() * 2000 + 500;
-        player.ship.y = Math.random() * 2000 + 500;
+        player.ship.rotation = 0;
 
         // Grant 3 seconds of immunity
         player.spawnProtectionUntil = Date.now() + 3000;
 
+        // Save the reset state so reloading the page doesn't bring back old score
+        this.savePlayerState(player);
+
         this.emit('respawned', { x: player.ship.x, y: player.ship.y });
+        // Emit initial stats again to update client UI
+        this.sendStats(player);
     }
 }
 
