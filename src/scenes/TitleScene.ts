@@ -75,15 +75,14 @@ export class TitleScene extends Phaser.Scene {
     // Play button
     this.createPlayButton(centerX, playButtonY);
 
-
-
-    // Help button (bottom-right, small)
-    this.helpButton = this.add.text(width - 100, height - 40, '📖 How to Play', {
-      font: '16px Arial',
+    // Help button (below Set Sail)
+    const helpButtonY = playButtonY + 80;
+    this.helpButton = this.add.text(centerX, helpButtonY, '📖 How to Play', {
+      font: '18px Arial',
       color: '#3498db',
       backgroundColor: '#1a2a3a',
-      padding: { x: 12, y: 8 }
-    }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true });
+      padding: { x: 16, y: 10 }
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     this.helpButton.on('pointerdown', () => {
       window.open('/manual.html', '_blank');
@@ -130,7 +129,7 @@ export class TitleScene extends Phaser.Scene {
         this.add.text(x, y, 'HALL OF FAME', { font: 'bold 18px Arial', color: '#f39c12' });
         y += 30;
 
-        highScores.forEach((entry, index: number) => {
+        highScores.slice(0, 3).forEach((entry, index: number) => {
           const rank = index + 1;
           const date = new Date(entry.date).toLocaleDateString();
 
@@ -285,9 +284,11 @@ export class TitleScene extends Phaser.Scene {
 
   private createShipPreviews(width: number, height: number): void {
     const ships: Array<{ name: string; shipClass: ShipClass; x: number }> = [
-      { name: 'Destroyer', shipClass: 'destroyer', x: width * 0.15 },
-      { name: 'Cruiser', shipClass: 'cruiser', x: width * 0.35 },
-      { name: 'Battleship', shipClass: 'battleship', x: width * 0.65 },
+      { name: 'Patrol Boat', shipClass: 'patrol_boat', x: width * 0.1 },
+      { name: 'Destroyer', shipClass: 'destroyer', x: width * 0.25 },
+      { name: 'Cruiser', shipClass: 'cruiser', x: width * 0.40 },
+      { name: 'Battleship', shipClass: 'battleship', x: width * 0.55 },
+      { name: 'Submarine', shipClass: 'submarine', x: width * 0.70 },
       { name: 'Carrier', shipClass: 'carrier', x: width * 0.85 }
     ];
 
