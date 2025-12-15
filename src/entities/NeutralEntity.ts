@@ -9,7 +9,7 @@ const NEUTRAL_CONFIGS: Record<NeutralType, {
   buoy: { color: 0xe74c3c, size: 15, xpValue: 10 },
   cargo: { color: 0xf39c12, size: 30, xpValue: 50 },
   lighthouse: { color: 0x9b59b6, size: 25, xpValue: 100 },
-  tank: { color: 0x2ecc71, size: 20, xpValue: 150 }
+  tank: { color: 0x7f8c8d, size: 20, xpValue: 150 }
 };
 
 export class NeutralEntity extends Phaser.GameObjects.Container {
@@ -246,30 +246,30 @@ export class NeutralEntity extends Phaser.GameObjects.Container {
   private drawTank(config: typeof NEUTRAL_CONFIGS['tank']): void {
     const size = config.size;
 
-    // Tank body (dark green)
-    this.graphics.fillStyle(0x27ae60, 1);
-    this.graphics.lineStyle(2, 0x1e8449, 1);
+    // Tank body (Steel Grey - contrasts with Island Green)
+    this.graphics.fillStyle(0x7f8c8d, 1);
+    this.graphics.lineStyle(2, 0x2c3e50, 1);
     this.graphics.fillRect(-size, -size * 0.8, size * 2, size * 1.6);
     this.graphics.strokeRect(-size, -size * 0.8, size * 2, size * 1.6);
 
-    // Tracks
-    this.graphics.fillStyle(0x34495e, 1);
+    // Tracks (Dark Grey)
+    this.graphics.fillStyle(0x2c3e50, 1);
     this.graphics.fillRect(-size * 1.1, -size * 0.9, size * 2.2, size * 0.4); // Top track
     this.graphics.fillRect(-size * 1.1, size * 0.5, size * 2.2, size * 0.4);  // Bottom track
 
-    // Turret
-    this.graphics.fillStyle(0x1e8449, 1);
+    // Turret (Darker Steel)
+    this.graphics.fillStyle(0x5d6d7e, 1);
     this.graphics.fillCircle(0, 0, size * 0.6);
     this.graphics.strokeCircle(0, 0, size * 0.6);
 
-    // Barrel
-    this.graphics.fillStyle(0x2ecc71, 1);
+    // Barrel (Gun Metal)
+    this.graphics.fillStyle(0x95a5a6, 1);
     this.graphics.fillRect(0, -size * 0.2, size * 1.4, size * 0.4);
-    this.graphics.lineStyle(1, 0x1e8449, 1);
+    this.graphics.lineStyle(1, 0x2c3e50, 1);
     this.graphics.strokeRect(0, -size * 0.2, size * 1.4, size * 0.4);
 
-    // Decorative camo
-    this.graphics.fillStyle(0x145a32, 0.4);
+    // Decorative camo (Urban/Dark)
+    this.graphics.fillStyle(0x2c3e50, 0.3);
     this.graphics.fillCircle(-size * 0.4, -size * 0.3, size * 0.2);
     this.graphics.fillCircle(size * 0.4, size * 0.4, size * 0.25);
   }
