@@ -7,12 +7,12 @@ const SHIP_CONFIGS: Record<ShipClass, {
   size: number;
   shape: 'patrol' | 'destroyer' | 'cruiser' | 'battleship' | 'submarine' | 'carrier';
 }> = {
-  patrol_boat: { color: 0x3498db, size: 2, shape: 'patrol' },
-  destroyer: { color: 0xe74c3c, size: 2.5, shape: 'destroyer' },
-  cruiser: { color: 0x9b59b6, size: 2.75, shape: 'cruiser' },
-  battleship: { color: 0x2c3e50, size: 3, shape: 'battleship' },
-  submarine: { color: 0x1abc9c, size: 2, shape: 'submarine' },
-  carrier: { color: 0xf39c12, size: 3.5, shape: 'carrier' }
+  patrol_boat: { color: 0x4CAF50, size: 2, shape: 'patrol' },      // Vibrant Green
+  destroyer: { color: 0x2980B9, size: 2.5, shape: 'destroyer' },   // Strong Blue
+  cruiser: { color: 0x8E44AD, size: 2.75, shape: 'cruiser' },      // Royal Purple
+  battleship: { color: 0xC0392B, size: 3, shape: 'battleship' },   // Aggressive Red
+  submarine: { color: 0x16A085, size: 2, shape: 'submarine' },     // Deep Teal
+  carrier: { color: 0xD35400, size: 3.5, shape: 'carrier' }        // Burnt Orange
 };
 
 export class ShipEntity extends Phaser.GameObjects.Container {
@@ -25,7 +25,7 @@ export class ShipEntity extends Phaser.GameObjects.Container {
   public level: number;
   public isStealthed: boolean = false;
   public isShielded: boolean = false;
-  
+
   // Interpolation
   private targetX: number;
   private targetY: number;
@@ -124,195 +124,129 @@ export class ShipEntity extends Phaser.GameObjects.Container {
     const strokeEllipse = (x: number, y: number, w: number, h: number) => g.strokeEllipse(x + cx, y + cy, w, h);
     const lineBetween = (x1: number, y1: number, x2: number, y2: number) => g.lineBetween(x1 + cx, y1 + cy, x2 + cx, y2 + cy);
 
-    const drawMiniAircraft = (x: number, y: number, s: number) => {
-      const aircraft = [
-        { x: x + 8 * s, y: y },
-        { x: x - 4 * s, y: y - 6 * s },
-        { x: x - 6 * s, y: y },
-        { x: x - 4 * s, y: y + 6 * s }
-      ];
-      g.fillPoints(offsetPoints(aircraft), true);
-    };
+    // Helper for carrier aircraft (used in carrier shape)
+    // const drawMiniAircraft = (x: number, y: number, s: number) => { ... }
 
     switch (config.shape) {
       case 'patrol': {
+        // Agile, sharp, green camo feel
         const hull = [
           { x: 32 * scale, y: 0 },
-          { x: 22 * scale, y: -8 * scale },
-          { x: 5 * scale, y: -10 * scale },
-          { x: -18 * scale, y: -9 * scale },
-          { x: -24 * scale, y: -5 * scale },
-          { x: -26 * scale, y: 0 },
-          { x: -24 * scale, y: 5 * scale },
-          { x: -18 * scale, y: 9 * scale },
-          { x: 5 * scale, y: 10 * scale },
-          { x: 22 * scale, y: 8 * scale }
+          { x: 20 * scale, y: -8 * scale },
+          { x: -24 * scale, y: -8 * scale },
+          { x: -30 * scale, y: 0 },
+          { x: -24 * scale, y: 8 * scale },
+          { x: 20 * scale, y: 8 * scale }
         ];
         fillPoints(hull);
-        g.fillStyle(0x2980b9, 1);
-        fillRoundedRect(-10 * scale, -5 * scale, 18 * scale, 10 * scale, 3);
-        g.fillStyle(0x85c1e9, 1);
-        fillRect(-2 * scale, -3 * scale, 6 * scale, 6 * scale);
-        g.fillStyle(0x2c3e50, 1);
-        fillCircle(15 * scale, 0, 4 * scale);
-        fillRect(17 * scale, -2, 12 * scale, 4);
-        g.lineStyle(1, 0xffffff, 0.3);
-        lineBetween(-26 * scale, 0, -30 * scale, 0);
+        // Camo / Detail stripes
+        g.fillStyle(0x81C784, 1);
+        fillPoints([{ x: 10 * scale, y: -8 * scale }, { x: 20 * scale, y: 0 }, { x: 10 * scale, y: 8 * scale }, { x: 0, y: 0 }], true);
+        g.fillStyle(0x1B5E20, 1);
+        fillRect(-20 * scale, -4 * scale, 12 * scale, 8 * scale); // Cockpit area
         break;
       }
       case 'destroyer': {
+        // Fast, sleek, blue with racing stripes
         const hull = [
-          { x: 38 * scale, y: 0 },
-          { x: 28 * scale, y: -7 * scale },
-          { x: 10 * scale, y: -10 * scale },
-          { x: -12 * scale, y: -11 * scale },
-          { x: -26 * scale, y: -8 * scale },
-          { x: -30 * scale, y: 0 },
-          { x: -26 * scale, y: 8 * scale },
-          { x: -12 * scale, y: 11 * scale },
-          { x: 10 * scale, y: 10 * scale },
-          { x: 28 * scale, y: 7 * scale }
+          { x: 40 * scale, y: 0 },
+          { x: 25 * scale, y: -6 * scale },
+          { x: -25 * scale, y: -8 * scale },
+          { x: -35 * scale, y: -4 * scale },
+          { x: -35 * scale, y: 4 * scale },
+          { x: -25 * scale, y: 8 * scale },
+          { x: 25 * scale, y: 6 * scale }
         ];
         fillPoints(hull);
-        g.fillStyle(0xc0392b, 1);
-        fillRoundedRect(-8 * scale, -6 * scale, 20 * scale, 12 * scale, 2);
-        g.fillStyle(0xecf0f1, 0.8);
-        fillRect(-4 * scale, -4 * scale, 3 * scale, 3 * scale);
-        fillRect(1 * scale, -4 * scale, 3 * scale, 3 * scale);
-        fillRect(6 * scale, -4 * scale, 3 * scale, 3 * scale);
-        g.fillStyle(0x2c3e50, 1);
-        fillCircle(20 * scale, 0, 5 * scale);
-        fillRect(23 * scale, -5, 12 * scale, 3);
-        fillRect(23 * scale, 2, 12 * scale, 3);
-        fillCircle(-18 * scale, 0, 3 * scale);
-        g.lineStyle(1, 0xffffff, 0.4);
-        lineBetween(30 * scale, -4 * scale, 35 * scale, -2 * scale);
-        lineBetween(30 * scale, 4 * scale, 35 * scale, 2 * scale);
+        // Racing stripes
+        g.fillStyle(0x5DADE2, 1);
+        fillRect(-30 * scale, -2 * scale, 60 * scale, 4 * scale);
+        // Engine vents
+        g.fillStyle(0x154360, 1);
+        fillRect(-32 * scale, -8 * scale, 8 * scale, 4 * scale);
+        fillRect(-32 * scale, 4 * scale, 8 * scale, 4 * scale);
         break;
       }
       case 'cruiser': {
+        // Tanky, purple, shield generators
         const hull = [
-          { x: 32 * scale, y: 0 },
-          { x: 24 * scale, y: -12 * scale },
-          { x: 5 * scale, y: -15 * scale },
-          { x: -15 * scale, y: -14 * scale },
-          { x: -28 * scale, y: -10 * scale },
-          { x: -32 * scale, y: 0 },
-          { x: -28 * scale, y: 10 * scale },
-          { x: -15 * scale, y: 14 * scale },
-          { x: 5 * scale, y: 15 * scale },
-          { x: 24 * scale, y: 12 * scale }
+          { x: 35 * scale, y: 0 },
+          { x: 25 * scale, y: -12 * scale },
+          { x: -25 * scale, y: -12 * scale },
+          { x: -35 * scale, y: -6 * scale },
+          { x: -35 * scale, y: 6 * scale },
+          { x: -25 * scale, y: 12 * scale },
+          { x: 25 * scale, y: 12 * scale }
         ];
         fillPoints(hull);
-        g.fillStyle(0x8e44ad, 1);
-        fillRoundedRect(-12 * scale, -8 * scale, 24 * scale, 16 * scale, 3);
-        g.fillStyle(0x6c3483, 1);
-        fillRect(-2 * scale, -12 * scale, 10 * scale, 6 * scale);
-        g.fillStyle(0xd7bde2, 0.8);
-        fillRect(-8 * scale, -5 * scale, 4 * scale, 4 * scale);
-        fillRect(4 * scale, -5 * scale, 4 * scale, 4 * scale);
-        g.fillStyle(0x2c3e50, 1);
-        fillCircle(18 * scale, 0, 6 * scale);
-        fillRect(22 * scale, -3, 14 * scale, 6);
-        fillCircle(-5 * scale, -12 * scale, 4 * scale);
-        fillCircle(-5 * scale, 12 * scale, 4 * scale);
-        g.lineStyle(1, 0xffffff, 0.2);
-        lineBetween(-20 * scale, -8 * scale, -20 * scale, 8 * scale);
-        lineBetween(15 * scale, -8 * scale, 15 * scale, 8 * scale);
+        // Shield Generator Cores
+        g.fillStyle(0xD2B4DE, 1);
+        fillCircle(0, 0, 8 * scale); // Central core
+        g.fillStyle(0x4A235A, 1);
+        fillCircle(0, 0, 4 * scale);
+        // Flank armor
+        g.fillStyle(0x5B2C6F, 1);
+        fillRect(-20 * scale, -14 * scale, 30 * scale, 4 * scale);
+        fillRect(-20 * scale, 10 * scale, 30 * scale, 4 * scale);
         break;
       }
       case 'battleship': {
+        // Massive, red, heavy guns
         const hull = [
-          { x: 40 * scale, y: 0 },
-          { x: 30 * scale, y: -14 * scale },
-          { x: 8 * scale, y: -18 * scale },
-          { x: -20 * scale, y: -17 * scale },
-          { x: -38 * scale, y: -12 * scale },
-          { x: -44 * scale, y: 0 },
-          { x: -38 * scale, y: 12 * scale },
-          { x: -20 * scale, y: 17 * scale },
-          { x: 8 * scale, y: 18 * scale },
-          { x: 30 * scale, y: 14 * scale }
+          { x: 45 * scale, y: 0 },
+          { x: 35 * scale, y: -16 * scale },
+          { x: -35 * scale, y: -16 * scale },
+          { x: -45 * scale, y: 0 },
+          { x: -35 * scale, y: 16 * scale },
+          { x: 35 * scale, y: 16 * scale }
         ];
         fillPoints(hull);
-        g.fillStyle(0x1a252f, 1);
-        fillRoundedRect(-30 * scale, -10 * scale, 50 * scale, 20 * scale, 4);
-        g.fillStyle(0x34495e, 1);
-        fillRect(-10 * scale, -14 * scale, 18 * scale, 10 * scale);
-        fillRect(-5 * scale, -18 * scale, 10 * scale, 6 * scale);
-        g.fillStyle(0x2c3e50, 1);
-        fillCircle(15 * scale, 0, 10 * scale);
-        fillRect(22 * scale, -5, 22 * scale, 10);
-        g.fillStyle(0x1a1a2e, 1);
-        fillRect(22 * scale, -4, 20 * scale, 2);
-        fillRect(22 * scale, -1, 20 * scale, 2);
-        fillRect(22 * scale, 2, 20 * scale, 2);
-        g.fillStyle(0x2c3e50, 1);
-        fillCircle(-22 * scale, -10 * scale, 5 * scale);
-        fillCircle(-22 * scale, 10 * scale, 5 * scale);
-        fillCircle(-32 * scale, 0, 6 * scale);
-        g.lineStyle(1, 0x566573, 0.5);
-        lineBetween(-35 * scale, -8 * scale, -35 * scale, 8 * scale);
-        lineBetween(5 * scale, -12 * scale, 5 * scale, 12 * scale);
+        // Heavy Gun Turrets
+        const drawTurret = (tx: number, ty: number) => {
+          g.fillStyle(0x641E16, 1);
+          fillCircle(tx, ty, 8 * scale);
+          g.lineStyle(3 * scale, 0x17202A, 1);
+          lineBetween(tx, ty, tx + 18 * scale, ty); // Gun barrel
+          g.lineStyle(2, 0xffffff, 0.8);
+        };
+        drawTurret(15 * scale, 0);
+        drawTurret(-15 * scale, 0);
+        drawTurret(0, 0); // Center turret
         break;
       }
       case 'submarine': {
-        fillEllipse(0, 0, 55 * scale, 14 * scale);
-        strokeEllipse(0, 0, 55 * scale, 14 * scale);
-        g.fillStyle(0x148f77, 1);
-        fillEllipse(22 * scale, 0, 15 * scale, 10 * scale);
-        g.fillStyle(0x17a589, 1);
-        fillRoundedRect(-8 * scale, -14 * scale, 18 * scale, 10 * scale, 4);
-        g.fillStyle(0x2c3e50, 1);
-        fillRect(4 * scale, -20 * scale, 3 * scale, 8 * scale);
-        fillCircle(5.5 * scale, -21 * scale, 2 * scale);
-        g.fillStyle(0x1a1a2e, 1);
-        fillRect(25 * scale, -3, 6 * scale, 2);
-        fillRect(25 * scale, 1, 6 * scale, 2);
-        g.fillStyle(0x117864, 1);
-        fillEllipse(-25 * scale, 0, 8 * scale, 8 * scale);
-        g.fillStyle(0x0e6655, 1);
-        for (let i = -15; i <= 15; i += 10) {
-          fillCircle(i * scale, -5 * scale, 1.5);
-          fillCircle(i * scale, 5 * scale, 1.5);
-        }
+        // Stealthy, teal/black, sleek oval
+        fillEllipse(0, 0, 55 * scale, 16 * scale);
+        strokeEllipse(0, 0, 55 * scale, 16 * scale);
+        // Conning tower
+        g.fillStyle(0x0E6251, 1);
+        fillRoundedRect(-5 * scale, -6 * scale, 16 * scale, 12 * scale, 4);
+        // Stealth markings
+        g.fillStyle(0x0B5345, 1);
+        fillRect(-15 * scale, -18 * scale, 4 * scale, 36 * scale); // Fins?
         break;
       }
       case 'carrier': {
-        const hull = [
-          { x: 45 * scale, y: -10 * scale },
-          { x: 45 * scale, y: 10 * scale },
-          { x: -38 * scale, y: 14 * scale },
-          { x: -50 * scale, y: 10 * scale },
-          { x: -52 * scale, y: 0 },
-          { x: -50 * scale, y: -10 * scale },
-          { x: -38 * scale, y: -14 * scale }
+        // Flat deck, orange/grey, runway
+        const hullLines = [
+          { x: 50 * scale, y: -12 * scale },
+          { x: 50 * scale, y: 12 * scale },
+          { x: -40 * scale, y: 16 * scale },
+          { x: -50 * scale, y: 0 },
+          { x: -40 * scale, y: -16 * scale }
         ];
-        fillPoints(hull);
-        g.fillStyle(0x7d6608, 1);
-        fillRect(-40 * scale, -9 * scale, 80 * scale, 18 * scale);
-        g.lineStyle(2, 0xffffff, 0.6);
-        lineBetween(-35 * scale, 0, 35 * scale, 0);
-        g.lineStyle(1, 0xffffff, 0.4);
-        for (let i = -30; i <= 20; i += 15) {
-          lineBetween(i * scale, -6 * scale, i * scale, 6 * scale);
-        }
-        g.lineStyle(1, 0xe74c3c, 0.5);
-        lineBetween(-20 * scale, -8 * scale, 15 * scale, 5 * scale);
-        lineBetween(-20 * scale, -5 * scale, 15 * scale, 8 * scale);
-        g.fillStyle(0x2c3e50, 1);
-        fillRect(8 * scale, -18 * scale, 20 * scale, 12 * scale);
+        fillPoints(hullLines);
+        // Runway
         g.fillStyle(0x566573, 1);
-        fillRect(15 * scale, -24 * scale, 3 * scale, 8 * scale);
-        fillCircle(16.5 * scale, -26 * scale, 4 * scale);
-        g.fillStyle(0x85c1e9, 0.7);
-        fillRect(12 * scale, -16 * scale, 4 * scale, 3 * scale);
-        fillRect(18 * scale, -16 * scale, 4 * scale, 3 * scale);
-        fillRect(24 * scale, -16 * scale, 4 * scale, 3 * scale);
-        g.fillStyle(0x7f8c8d, 0.8);
-        drawMiniAircraft(-25 * scale, -4 * scale, scale * 0.6);
-        drawMiniAircraft(-10 * scale, 3 * scale, scale * 0.6);
-        drawMiniAircraft(5 * scale, -3 * scale, scale * 0.6);
+        fillRect(-45 * scale, -5 * scale, 90 * scale, 10 * scale);
+        // Runway dashed lines
+        g.fillStyle(0xF1C40F, 1);
+        for (let i = -40; i < 40; i += 15) {
+          fillRect(i * scale, -1 * scale, 8 * scale, 2 * scale);
+        }
+        // Control tower island
+        g.fillStyle(0xBA4A00, 1);
+        fillRect(10 * scale, -18 * scale, 20 * scale, 6 * scale);
         break;
       }
     }
@@ -329,15 +263,15 @@ export class ShipEntity extends Phaser.GameObjects.Container {
 
   private updateHealthBar(): void {
     this.healthBar.clear();
-    
+
     const barWidth = 40;
     const barHeight = 4;
     const y = -35;
-    
+
     // Background
     this.healthBar.fillStyle(0x333333, 0.8);
     this.healthBar.fillRect(-barWidth / 2, y, barWidth, barHeight);
-    
+
     // Health fill
     const healthPercent = this.health / this.maxHealth;
     const healthColor = healthPercent > 0.5 ? 0x2ecc71 : healthPercent > 0.25 ? 0xf39c12 : 0xe74c3c;
@@ -355,7 +289,7 @@ export class ShipEntity extends Phaser.GameObjects.Container {
     // Smooth position interpolation
     this.x += (this.targetX - this.x) * this.LERP_SPEED;
     this.y += (this.targetY - this.y) * this.LERP_SPEED;
-    
+
     // Smooth rotation interpolation (handle wrapping)
     let rotationDiff = this.targetRotation - this.rotation;
     if (rotationDiff > Math.PI) rotationDiff -= Math.PI * 2;
@@ -402,19 +336,19 @@ export class ShipEntity extends Phaser.GameObjects.Container {
     if (this.isShielded) {
       const config = SHIP_CONFIGS[this.shipClass];
       const radius = 40 * config.size;
-      
+
       // Outer glow
       this.shieldGraphics.lineStyle(6, 0x3498db, 0.2);
       this.shieldGraphics.strokeCircle(0, 0, radius + 5);
-      
+
       // Main shield ring
       this.shieldGraphics.lineStyle(3, 0x5dade2, 0.8);
       this.shieldGraphics.strokeCircle(0, 0, radius);
-      
+
       // Inner glow
       this.shieldGraphics.fillStyle(0x3498db, 0.15);
       this.shieldGraphics.fillCircle(0, 0, radius);
-      
+
       // Hex pattern effect
       this.shieldGraphics.lineStyle(1, 0x85c1e9, 0.3);
       for (let i = 0; i < 6; i++) {

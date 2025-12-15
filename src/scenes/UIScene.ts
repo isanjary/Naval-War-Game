@@ -15,9 +15,6 @@ export class UIScene extends Phaser.Scene {
   private scoreText!: Phaser.GameObjects.Text;
   private killsText!: Phaser.GameObjects.Text;
 
-  // Diagnostics overlay (fed by GameScene)
-  private netStatsText!: Phaser.GameObjects.Text;
-
   // Ability indicator
   private abilityContainer!: Phaser.GameObjects.Container;
   private abilityBar!: Phaser.GameObjects.Graphics;
@@ -111,14 +108,6 @@ export class UIScene extends Phaser.Scene {
       color: '#e74c3c'
     });
 
-    // Diagnostics overlay (placed below the top-left HUD)
-    this.netStatsText = this.add.text(20, 130, '', {
-      font: '12px Arial',
-      color: '#ffffff',
-      backgroundColor: 'rgba(0,0,0,0.45)',
-      padding: { x: 6, y: 4 }
-    }).setDepth(10000);
-
     // Create stats panel (shows current stat levels)
     this.createStatsPanel();
 
@@ -156,17 +145,6 @@ export class UIScene extends Phaser.Scene {
     gameScene.events.on('updateMinimap', this.updateMinimap, this);
     gameScene.events.on('setPlayerId', (id: string) => { this.playerId = id; }, this);
     gameScene.events.on('killFeed', this.addKillFeedEntry, this);
-
-    gameScene.events.on(
-      'netStats',
-      (data: { fps: number; gameStateHz: number; lastPacketAgeMs: number | null; renderer: 'WEBGL' | 'CANVAS'; connected: boolean }) => {
-        const age = data.lastPacketAgeMs === null ? 'n/a' : data.lastPacketAgeMs.toFixed(0);
-        this.netStatsText.setText(
-          `renderer=${data.renderer}  connected=${data.connected}  fps=${data.fps.toFixed(0)}  gameStateHz=${data.gameStateHz.toFixed(1)}  lastPacketAgeMs=${age}`
-        );
-      },
-      this
-    );
   }
 
   private drawHealthBar(health: number): void {
