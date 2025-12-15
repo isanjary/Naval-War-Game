@@ -18,7 +18,7 @@ export class BulletEntity extends Phaser.GameObjects.Container {
   public ownerId: string;
   public bulletType: BulletType;
   public damage: number;
-  
+
   private bodyImage: Phaser.GameObjects.Image;
   private trail: Phaser.GameObjects.Graphics;
   private prevX: number;
@@ -93,6 +93,13 @@ export class BulletEntity extends Phaser.GameObjects.Container {
   }
 
   public updateInterpolation(): void {
+    // Early-exit if already at target (within 0.1 pixels)
+    const dx = this.targetX - this.x;
+    const dy = this.targetY - this.y;
+    if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) {
+      return;
+    }
+
     const config = BULLET_CONFIGS[this.bulletType];
 
     // Trail: single fading line from previous to current (local coords)
@@ -101,8 +108,8 @@ export class BulletEntity extends Phaser.GameObjects.Container {
     this.trail.lineBetween(this.prevX - this.x, this.prevY - this.y, 0, 0);
 
     // Fast interpolation for bullets
-    this.x += (this.targetX - this.x) * this.LERP_SPEED;
-    this.y += (this.targetY - this.y) * this.LERP_SPEED;
+    this.x += dx * this.LERP_SPEED;
+    this.y += dy * this.LERP_SPEED;
 
     this.prevX = this.x;
     this.prevY = this.y;

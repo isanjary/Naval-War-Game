@@ -669,4 +669,38 @@ export class GameScene extends Phaser.Scene {
     this.scene.start('TitleScene');
     this.scene.stop();
   }
+
+  shutdown(): void {
+    // Clean up entity maps
+    for (const ship of this.ships.values()) {
+      ship.destroy();
+    }
+    this.ships.clear();
+
+    for (const bullet of this.bullets.values()) {
+      bullet.destroy();
+    }
+    this.bullets.clear();
+
+    for (const neutral of this.neutrals.values()) {
+      neutral.destroy();
+    }
+    this.neutrals.clear();
+
+    for (const island of this.islands.values()) {
+      island.destroy();
+    }
+    this.islands.clear();
+
+    for (const drone of this.drones.values()) {
+      drone.destroy();
+    }
+    this.drones.clear();
+
+    // Clean up systems
+    this.soundManager.destroy();
+    this.visualEffects.destroy();
+    this.networkManager.disconnect();
+    this.mobileControls.destroy();
+  }
 }

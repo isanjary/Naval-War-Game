@@ -286,9 +286,16 @@ export class ShipEntity extends Phaser.GameObjects.Container {
   }
 
   public updateInterpolation(): void {
+    // Early-exit if already at target (within 0.1 pixels)
+    const dx = this.targetX - this.x;
+    const dy = this.targetY - this.y;
+    if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) {
+      return;
+    }
+
     // Smooth position interpolation
-    this.x += (this.targetX - this.x) * this.LERP_SPEED;
-    this.y += (this.targetY - this.y) * this.LERP_SPEED;
+    this.x += dx * this.LERP_SPEED;
+    this.y += dy * this.LERP_SPEED;
 
     // Smooth rotation interpolation (handle wrapping)
     let rotationDiff = this.targetRotation - this.rotation;
@@ -366,5 +373,13 @@ export class ShipEntity extends Phaser.GameObjects.Container {
   public getCollisionRadius(): number {
     const config = SHIP_CONFIGS[this.shipClass];
     return 25 * config.size;
+  }
+
+  destroy(fromScene?: boolean): void {
+    this.bodyImage.destroy();
+    this.healthBar.destroy();
+    this.shieldGraphics.destroy();
+    this.nameText.destroy();
+    super.destroy(fromScene);
   }
 }

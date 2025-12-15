@@ -6,6 +6,7 @@ export class SoundManager {
   private masterVolume = 0.5;
   private sfxVolume = 0.7;
   private enabled = true;
+  private noiseBufferCache: Map<number, AudioBuffer> = new Map();
 
   constructor(scene: Phaser.Scene) {
     void scene;
@@ -210,12 +211,18 @@ export class SoundManager {
     const ctx = this.audioContext;
     const now = ctx.currentTime;
 
-    const bufferSize = ctx.sampleRate * duration;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
+    // Use cached buffer if available, otherwise create and cache
+    const durationKey = Math.round(duration * 1000); // Key by ms for precision
+    let buffer = this.noiseBufferCache.get(durationKey);
 
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+    if (!buffer) {
+      const bufferSize = Math.floor(ctx.sampleRate * duration);
+      buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+      }
+      this.noiseBufferCache.set(durationKey, buffer);
     }
 
     const noise = ctx.createBufferSource();
