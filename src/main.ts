@@ -3,9 +3,6 @@ import { BootScene } from './scenes/BootScene';
 import { TitleScene } from './scenes/TitleScene';
 import { GameScene } from './scenes/GameScene';
 import { UIScene } from './scenes/UIScene';
-import { inject } from '@vercel/analytics';
-
-inject();
 
 const isDev = import.meta.env.DEV;
 
